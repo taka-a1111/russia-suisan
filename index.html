@@ -774,12 +774,39 @@ document.getElementById('sendBtn').addEventListener('click',()=>{alert('デモ�
 </script>
 
 <script>
+var genbaI=0, genbaLock=0;
+(function(){
+  var s=document.getElementById('genbaSlider');
+  if(!s)return;
+  var slides=s.querySelectorAll('.genba-slide'), tm;
+  s.addEventListener('scroll',function(){
+    if(genbaLock)return;
+    clearTimeout(tm);
+    tm=setTimeout(function(){
+      if(genbaLock)return;
+      var max=s.scrollWidth-s.clientWidth;
+      if(s.scrollLeft>=max-8){genbaI=slides.length-1;return;}
+      if(s.scrollLeft<=8){genbaI=0;return;}
+      var center=s.scrollLeft+s.clientWidth/2, best=1e9;
+      for(var i=0;i<slides.length;i++){
+        var c=slides[i].offsetLeft+slides[i].offsetWidth/2, d=Math.abs(c-center);
+        if(d<best){best=d;genbaI=i;}
+      }
+    },140);
+  },{passive:true});
+})();
 function genbaScroll(dir){
   var s=document.getElementById('genbaSlider');
   if(!s)return;
-  var sl=s.querySelector('.genba-slide');
-  var step=sl?(sl.getBoundingClientRect().width+18):Math.round(s.clientWidth*0.5);
-  s.scrollBy({left:dir*step,behavior:'smooth'});
+  var slides=s.querySelectorAll('.genba-slide'), n=slides.length;
+  if(!n)return;
+  genbaI=(genbaI+dir+n)%n;
+  var t=slides[genbaI];
+  genbaLock=1; setTimeout(function(){genbaLock=0;},650);
+  if(genbaI===0){ s.scrollTo({left:0,behavior:'smooth'}); return; }
+  if(genbaI===n-1){ s.scrollTo({left:s.scrollWidth-s.clientWidth,behavior:'smooth'}); return; }
+  var left=t.offsetLeft-(s.clientWidth-t.offsetWidth)/2;
+  s.scrollTo({left:Math.max(0,left),behavior:'smooth'});
 }
 </script>
 </body>
